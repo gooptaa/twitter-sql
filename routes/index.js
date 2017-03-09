@@ -11,10 +11,10 @@ function respondWithAllTweets (req, res, next){
   //   title: 'Twitter.js',
   //   tweets: allTheTweets,
   //   showForm: true
-  client.query('SELECT * FROM tweets', function (err, result) {
+  client.query('SELECT tweets.id AS tweet_id, * FROM tweets INNER JOIN users ON users.id = tweets.user_id', function (err, result) {
     if (err) console.err(err); // pass errors to Express
     var tweets = result.rows;
-    console.log(tweets)
+    console.log(result)
     res.render('index', { title: 'Twitter.js', tweets: tweets, showForm: true });
   });
 }
@@ -25,22 +25,34 @@ router.get('/tweets', respondWithAllTweets);
 
 // single-user page
 router.get('/users/:username', function(req, res, next){
-  var tweetsForName = tweetBank.find({ name: req.params.username });
-  res.render('index', {
-    title: 'Twitter.js',
-    tweets: tweetsForName,
-    showForm: true,
-    username: req.params.username
-  });
+  client.query('SELECT tweets.id AS tweet_id, * FROM tweets INNER JOIN users ON users.id = tweets.user_id WHERE name = $1', [req.params.username], function(err, result) {
+    if (err) console.error(err);
+    var tweets = result.rows;
+    res.render('index', {title: 'Twitter.js', tweets:tweets, showForm:true})
+  })
+  // var tweetsForName = tweetBank.find({ name: req.params.username });
+  // res.render('index', {
+  //   title: 'Twitter.js',
+  //   tweets: tweetsForName,
+  //   showForm: true,
+  //   username: req.params.username
+  // });
 });
 
 // single-tweet page
 router.get('/tweets/:id', function(req, res, next){
-  var tweetsWithThatId = tweetBank.find({ id: Number(req.params.id) });
-  res.render('index', {
-    title: 'Twitter.js',
-    tweets: tweetsWithThatId // an array of only one element ;-)
-  });
+  console.log(req.params.id)
+  client.query('SELECT tweets.id AS tweet_id, * FROM tweets INNER JOIN users ON users.id = tweets.user_id WHERE tweets.id = $1', [req.params.id], function (err, result) {
+    if (err) console.error(err);
+    var tweets = result.rows;
+    console.log(tweets)
+    res.render('index', {title: 'Twitter.js', tweets:tweets, showForm:true})
+  })
+  // var tweetsWithThatId = tweetBank.find({ id: Number(req.params.id) });
+  // res.render('index', {
+  //   title: 'Twitter.js',
+  //   tweets: tweetsWithThatId // an array of only one element ;-)
+  // });
 });
 
 // create a new tweet
