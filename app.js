@@ -39,3 +39,22 @@ app.listen(1337, function(){
 //     res.send(fileBuffer);
 //   });
 // });
+
+var pg = require ("pg")
+var client = new pg.Client()
+
+client.connect(function (err){
+  if (err) {console.error(err)}
+
+  else {
+    client.query("SELECT * FROM users", function(err, data){
+      if (err) {console.error(err)}
+      else {
+        console.log(data.rows[0])
+      }
+    })
+  }
+  client.end(function(err){
+    if (err) {console.error(err)}
+  })
+})
