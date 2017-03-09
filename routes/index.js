@@ -57,9 +57,33 @@ router.get('/tweets/:id', function(req, res, next){
 
 // create a new tweet
 router.post('/tweets', function(req, res, next){
-  tweetBank.add(req.body.name, req.body.text);
-  res.redirect('/');
-});
+  client.query('SELECT id, name FROM users WHERE name = $1', [req.body.name], function(err, result){
+    if (err) {throw err}
+    if (result.rows.length) {
+      client.query('INSERT INTO tweets (user_id, content) VALUES ($1, $2)', [result.rows[0].id, req.body.text], function (error, data){
+        if (error){throw error}
+        res.redirect('/')
+      })
+    }
+    else {
+      client.query('INSERT INTO users (name, picture_url) VALUES ($1, $2)', [req.body.name, "http://i.imgur.com/lBARi6E.jpg"], function (error2){
+        if (error2){throw error2}
+      })
+      client.query('SELECT id, name FROM users WHERE name = $1', [req.body.name], function(err, result){
+        if (err) {throw err}
+        var newID = result.rows[0].id
+        client.query('INSERT INTO tweets (user_id, content) VALUES ($1, $2)', [newID, req.body.text], function (error, data){
+          if (error){throw error}
+          res.redirect('/')
+        })
+      })
+    }
+  })
+})
+
+
+  // tweetBank.add(req.body.name, req.body.text);
+  // res.redirect('/');
 
 // // replaced this hard-coded route with general static routing in app.js
 // router.get('/stylesheets/style.css', function(req, res, next){
